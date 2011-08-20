@@ -1,10 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""This Module is about using PR_SET_SECCOMP as a jail.
+"""
+This module includes classes to create execute a python
+method in a seperate process, which will be run in a jail.
+The jail mechanism has been implemented using the *PR_SET_SECCOMP*
+command of the prctl syscall (see http://www.kernel.org/doc/\
+man-pages/online/pages/man2/prctl.2.html - *PR_SET_SECCOMP* - 
+for more information).
+This command basically allows a process to continue
+using all currently open files, but opening new ones is
+forbidden. Most syscalls are forbidden, except reading,
+writing, and some more.
 
-The prctl syscall implements a command to build a jail
-like environment (PR_SET_SECCOMP command).
+.. note:: The *\\_exit*\ -function of the libc seems to be
+  replaced by some other syscall so calling *\\_exit* will result
+  in a violation (if process runs in our jail). Therefore I 
+  directly use the *syscall*\ -function to send a real 
+  *\\_exit*\ -syscall to the kernel.
 """
 
 from ctypes import CDLL
@@ -77,11 +90,11 @@ class JailedProcess(object):
     This *JailedProcess* object can be used to 
     execute a python function in a *safe* context.
     
-    This class is only as safe as the json module it uses
-    and the kernel it's running on. Also, there can be 
-    errors in the code, it has not been tested a lot.
-    Note that all files that are currently open can be
-    accessed by the "secure" process.
+    .. note:: This class is only as safe as the json module it
+      uses and the kernel it's running on. Also, there can be 
+      errors in the code, it has not been tested a lot.
+      All files that are currently open can be
+      accessed by the "secure" process.
     
     *func* can have a return value (this can be any json
     compatible type). The value will be written to *ret*.
