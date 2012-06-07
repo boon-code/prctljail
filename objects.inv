@@ -1,0 +1,11 @@
+# Sphinx inventory version 1
+# Project: prctljail
+# Version: 0.0.0
+prctljail mod index.html
+prctljail.JailedProcess.run method index.html
+prctljail.FuncNotFoundError class index.html
+prctljail.LibraryNotFoundError class index.html
+prctljail.JailedProcess.isAvailable classmethod index.html
+prctljail.JailedProcess class index.html
+prctljail.JailException class index.html
+prctljail.JailedProcess.__init__ method index.html

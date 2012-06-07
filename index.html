@@ -1,0 +1,287 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to prctljail’s documentation! &mdash; prctljail v0.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.0.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="prctljail v0.0.0 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li><a href="#">prctljail v0.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-prctljail">
+<h1>Welcome to prctljail&#8217;s documentation!<a class="headerlink" href="#module-prctljail" title="Permalink to this headline">¶</a></h1>
+<p>This module includes classes to create execute a python
+method in a seperate process, which will be run in a jail.
+The jail mechanism has been implemented using the <em>PR_SET_SECCOMP</em>
+command of the prctl syscall (see <a class="reference external" href="http://www.kernel.org/doc/man-pages/online/pages/man2/prctl.2.html">http://www.kernel.org/doc/man-pages/online/pages/man2/prctl.2.html</a> - <em>PR_SET_SECCOMP</em> - 
+for more information).
+This command basically allows a process to continue
+using all currently open files, but opening new ones is
+forbidden. Most syscalls are forbidden, except reading,
+writing, and some more.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <em>_exit</em>-function of the libc seems to be
+replaced by some other syscall so calling <em>_exit</em> will result
+in a violation (if process runs in our jail). Therefore I 
+directly use the <em>syscall</em>-function to send a real 
+<em>_exit</em>-syscall to the kernel.</p>
+</div>
+</div>
+<div class="section" id="the-jailedprocess-class">
+<h1>The JailedProcess class<a class="headerlink" href="#the-jailedprocess-class" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="prctljail.JailedProcess">
+<em class="property">class </em><tt class="descclassname">prctljail.</tt><tt class="descname">JailedProcess</tt><big>(</big><em>func</em>, <em>args=()</em>, <em>kargs={}</em><big>)</big><a class="headerlink" href="#prctljail.JailedProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents the jailed process.</p>
+<p>This <em>JailedProcess</em> object can be used to 
+execute a python function in a <em>safe</em> context.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This class is only as safe as the json module it
+uses and the kernel it&#8217;s running on. Also, there can be 
+errors in the code, it has not been tested a lot.
+All files that are currently open can be
+accessed by the &#8220;secure&#8221; process.</p>
+</div>
+<p><em>func</em> can have a return value (this can be any json
+compatible type). The value will be written to <em>ret</em>.
+Note that you always have to check the value returned by
+the <em>run</em> method. If the returned value is not 0, 
+there has been an error and <em>ret</em> should contain a
+string representation of the exceptions that occurred.</p>
+</dd></dl>
+
+<div class="section" id="isavailable-method">
+<h2><em>isAvailable</em>-method<a class="headerlink" href="#isavailable-method" title="Permalink to this headline">¶</a></h2>
+<dl class="classmethod">
+<dt id="prctljail.JailedProcess.isAvailable">
+<em class="property">classmethod </em><tt class="descclassname">JailedProcess.</tt><tt class="descname">isAvailable</tt><big>(</big><em>raise_exception=False</em><big>)</big><a class="headerlink" href="#prctljail.JailedProcess.isAvailable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Classmethod that checks availability of this &#8220;Jail&#8221;.</p>
+<p>This method just tries to load the libc and find
+all functions needed to create a jail.</p>
+<p>TODO:</p>
+<ul class="simple">
+<li>I&#8217;m not finished yet... I should somehow test if
+the <em>PR_SET_SECCOMP</em> command really is supported.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><em>cls</em> &#8211; The class object.</li>
+<li><em>raise_exception</em> &#8211; If this flag ist set to True,
+an exception will be thrown if 
+the method would return False.
+(The Exception should include
+detailed information about
+what went wrong.)</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if all necessary methods could be found
+else False.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="constructor">
+<h2>Constructor<a class="headerlink" href="#constructor" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="prctljail.JailedProcess.__init__">
+<tt class="descclassname">JailedProcess.</tt><tt class="descname">__init__</tt><big>(</big><em>func</em>, <em>args=()</em>, <em>kargs={}</em><big>)</big><a class="headerlink" href="#prctljail.JailedProcess.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a new instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><em>func</em> &#8211; The function that will be executed.</li>
+<li><em>args</em> &#8211; Arguments for <em>func</em></li>
+<li><em>kargs</em> &#8211; Keyword arguments for <em>func</em></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="run-method">
+<h2><em>run</em>-method<a class="headerlink" href="#run-method" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="prctljail.JailedProcess.run">
+<tt class="descclassname">JailedProcess.</tt><tt class="descname">run</tt><big>(</big><big>)</big><a class="headerlink" href="#prctljail.JailedProcess.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes restricted function (blocking).</p>
+<p>This will create a new process (fork) and block the
+calling process until the new process finishes.</p>
+<p>TODO:</p>
+<ul class="simple">
+<li>It should be possible to give a &#8220;maximum-wait-time&#8221;.
+After that time, the new process will be killed and
+the calling process finally returns (maybe
+throw an exception).</li>
+<li>Maybe I will change the return value to directly
+return <em>ret</em> member and automatically throw an
+Exception if some error happend (or a violation).</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">Returns the exit code of the new process.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="exceptions">
+<h1>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h1>
+<p>This sections covers all Exception classes, that
+will be used by this module.</p>
+<div class="section" id="jailexception">
+<h2>JailException<a class="headerlink" href="#jailexception" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="prctljail.JailException">
+<em class="property">class </em><tt class="descclassname">prctljail.</tt><tt class="descname">JailException</tt><a class="headerlink" href="#prctljail.JailException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic Exception of this Module</p>
+<p>All Exceptions of this module should be derived
+from this one.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="librarynotfounderror">
+<h2>LibraryNotFoundError<a class="headerlink" href="#librarynotfounderror" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="prctljail.LibraryNotFoundError">
+<em class="property">class </em><tt class="descclassname">prctljail.</tt><tt class="descname">LibraryNotFoundError</tt><big>(</big><em>name</em>, <em>*args</em><big>)</big><a class="headerlink" href="#prctljail.LibraryNotFoundError" title="Permalink to this definition">¶</a></dt>
+<dd><p>A library couldn&#8217;t be found.</p>
+<p>This Exception will be thrown, if the library
+with name <em>name</em> couldn&#8217;t be load successfully.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="funcnotfounderror">
+<h2>FuncNotFoundError<a class="headerlink" href="#funcnotfounderror" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="prctljail.FuncNotFoundError">
+<em class="property">class </em><tt class="descclassname">prctljail.</tt><tt class="descname">FuncNotFoundError</tt><big>(</big><em>libname</em>, <em>funcname</em>, <em>*args</em><big>)</big><a class="headerlink" href="#prctljail.FuncNotFoundError" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function of a library couldn&#8217;t be found.</p>
+<p>This Exception will be thrown, if it&#8217;s has
+been tried to access a function of a library
+that does not exist.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference external" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference external" href="modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference external" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="#">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Welcome to prctljail&#8217;s documentation!</a></li>
+<li><a class="reference external" href="#the-jailedprocess-class">The JailedProcess class</a><ul>
+<li><a class="reference external" href="#isavailable-method"><em>isAvailable</em>-method</a></li>
+<li><a class="reference external" href="#constructor">Constructor</a></li>
+<li><a class="reference external" href="#run-method"><em>run</em>-method</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#exceptions">Exceptions</a><ul>
+<li><a class="reference external" href="#jailexception">JailException</a></li>
+<li><a class="reference external" href="#librarynotfounderror">LibraryNotFoundError</a></li>
+<li><a class="reference external" href="#funcnotfounderror">FuncNotFoundError</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/index.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li><a href="#">prctljail v0.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2011, Manuel Huber.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>
